@@ -11,14 +11,7 @@
 
 set -x
 
-# FIXME: temporary workaround for image lookup, must pass in image ID
-SID=$1
-
 export NCCL_DEBUG=INFO
 
-# Funny workaround to prevent shifter directory confusion.
-# UPDATE THIS AS NEEDED FOR YOUR WORKING PATH.
-cd /home/$USER/tensorflow-build/nersc-tf-tests
-
-srun -l -u shifter --image=id:${SID} --module gpu \
-    python horovod/examples/tensorflow2/tensorflow2_synthetic_benchmark.py
+srun -l -u shifter \
+    bash -c "python horovod/examples/tensorflow2/tensorflow2_synthetic_benchmark.py"
