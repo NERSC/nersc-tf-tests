@@ -13,5 +13,5 @@ set -x
 
 export NCCL_DEBUG=INFO
 
-srun -l -u --mpi=pmi2 shifter \
+srun -l -u --mpi=pmi2 shifter --module gpu \
     bash -c "python horovod/examples/tensorflow2/tensorflow2_synthetic_benchmark.py"
