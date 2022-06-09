@@ -3,7 +3,7 @@
 #SBATCH -N 1
 #SBATCH --ntasks-per-node 4
 #SBATCH --cpus-per-task 32
-#SBATCH --gpus-per-task 1
+#SBATCH --gpus-per-node 4
 #SBATCH -t 0:05:00
 #SBATCH -J tf2-benchmark-pm
 #SBATCH -d singleton
