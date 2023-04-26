@@ -1,12 +1,12 @@
 #!/bin/bash
 
+acct=$1
+
 # Setup software
-# FIXME: replace with Perlmutter module path when available
-source ../setup.sh
-conda activate tf-2.4.1
+module load tensorflow/2.9.0
 
 # Single node, 4 gpus
-sbatch -N 1 scripts/tf2_hvd_pm.sh
+sbatch -N 1 -A $acct scripts/tf2_hvd_pm.sh
 
 # Two nodes, 8 gpus
-sbatch -N 2 scripts/tf2_hvd_pm.sh
+sbatch -N 2 -A $acct scripts/tf2_hvd_pm.sh
