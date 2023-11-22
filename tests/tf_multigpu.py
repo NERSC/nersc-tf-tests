@@ -105,6 +105,7 @@ eval_loss, eval_acc = model.evaluate(eval_dataset)
 print('Eval loss: {}, Eval accuracy: {}'.format(eval_loss, eval_acc))
 
 path = os.path.expandvars('$SCRATCH/nersc-tf-tests/saved_models/my_model.keras')
+os.makedirs(os.path.dirname(path), exist_ok=True)
 
 model.save(path)
 
