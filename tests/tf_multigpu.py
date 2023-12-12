@@ -67,7 +67,7 @@ with strategy.scope():
 # Define the checkpoint directory to store the checkpoints.
 checkpoint_dir = os.path.expandvars('$SCRATCH/nersc-tf-tests/training_checkpoints')
 # Define the name of the checkpoint files.
-checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt_{epoch}")
+checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt_{epoch}.weights.h5")
 
 # Define a function for decaying the learning rate.
 # You can define any decay function you need.
