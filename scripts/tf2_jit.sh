@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -J tf-multigpu-test
+#SBATCH -J tf-jit-test
 #SBATCH -q debug
 #SBATCH -C gpu
 #SBATCH --nodes=1
