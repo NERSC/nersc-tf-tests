@@ -127,4 +127,6 @@ with strategy.scope():
                              metrics=['accuracy'])
 
     eval_loss, eval_acc = replicated_model.evaluate(eval_dataset)
-    print ('Eval loss: {}, Eval Accuracy: {}'.format(eval_loss, eval_acc))
+    print('Eval loss: {}, Eval Accuracy: {}'.format(eval_loss, eval_acc))
+
+print('All done!')
