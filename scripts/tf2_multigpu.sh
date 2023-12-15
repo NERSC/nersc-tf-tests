@@ -16,5 +16,6 @@ nvidia-smi
 export NCCL_DEBUG=${NCCL_DEBUG:-WARN}
 export TF_CPP_MIN_LOG_LEVEL=${TF_CPP_MIN_LOG_LEVEL:-0} #3
 export TF_CPP_MIN_VLOG_LEVEL=${TF_CPP_MIN_VLOG_LEVEL:-0} #1
+export TF_FORCE_GPU_ALLOW_GROWTH=true
 
 srun python tests/tf_multigpu.py
