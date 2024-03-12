@@ -12,44 +12,63 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This script taken was from
+# This script is adapted from
 # https://github.com/tensorflow/docs/blob/master/site/en/tutorials/distribute/keras.ipynb
 
 import tensorflow_datasets as tfds
 import tensorflow as tf
-
+import argparse
 import os
+import numpy as np
 
-data_dir = os.path.expandvars('$SCRATCH/nersc-tf-tests/data')
 
-datasets, info = tfds.load(name='mnist', with_info=True, as_supervised=True,
-                           data_dir=data_dir)
-
-mnist_train, mnist_test = datasets['train'], datasets['test']
+parser = argparse.ArgumentParser()
+parser.add_argument("--dummy_data", action='store_true')
+args = parser.parse_args()
 
 strategy = tf.distribute.MirroredStrategy()
-
 print('Number of devices: {}'.format(strategy.num_replicas_in_sync))
 
-# You can also do info.splits.total_num_examples to get the total
-# number of examples in the dataset.
-
-num_train_examples = info.splits['train'].num_examples
-num_test_examples = info.splits['test'].num_examples
-
 BUFFER_SIZE = 10000
-
 BATCH_SIZE_PER_REPLICA = 64
 BATCH_SIZE = BATCH_SIZE_PER_REPLICA * strategy.num_replicas_in_sync
 
-def scale(image, label):
-    image = tf.cast(image, tf.float32)
-    image /= 255
+if args.dummy_data:
 
-    return image, label
+    # Use random data
+    print('Using random data')
+    def generate_dummy_dataset(num_samples=1000, image_shape=(28, 28), num_classes=10):
+        images = np.random.rand(num_samples, *image_shape)
+        labels = np.random.randint(0, num_classes, size=num_samples)
 
-train_dataset = mnist_train.map(scale).cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE)
-eval_dataset = mnist_test.map(scale).batch(BATCH_SIZE)
+        return images, labels
+
+    train_images, train_labels = generate_dummy_dataset(num_samples=60000)
+    test_images, test_labels = generate_dummy_dataset(num_samples=10000)
+
+    train_dataset = tf.data.Dataset.from_tensor_slices((train_images, train_labels)).batch(BATCH_SIZE)
+    eval_dataset = tf.data.Dataset.from_tensor_slices((test_images, test_labels)).batch(BATCH_SIZE)
+
+else:
+
+    # Use mnist data (default)
+    print('Using MNIST data')
+    data_dir = os.path.expandvars('$SCRATCH/nersc-tf-tests/data')
+
+    datasets, info = tfds.load(name='mnist', with_info=True, as_supervised=True,
+                               data_dir=data_dir)
+
+    mnist_train, mnist_test = datasets['train'], datasets['test']
+
+    def scale(image, label):
+        image = tf.cast(image, tf.float32)
+        image /= 255
+
+        return image, label
+
+    train_dataset = mnist_train.map(scale).cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE)
+    eval_dataset = mnist_test.map(scale).batch(BATCH_SIZE)
+
 
 with strategy.scope():
     model = tf.keras.Sequential([
