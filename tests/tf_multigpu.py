@@ -42,7 +42,7 @@ if args.dummy_data:
     # Use random data
     print('Using random data')
     def generate_dummy_dataset(num_samples=1000, image_shape=(28, 28), num_classes=10):
-        images = np.random.rand(num_samples, *image_shape)
+        images = np.random.rand(num_samples, *image_shape, 1)
         labels = np.random.randint(0, num_classes, size=num_samples)
 
         return images, labels
