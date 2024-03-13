@@ -24,7 +24,11 @@ import numpy as np
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--dummy_data", action='store_true')
+parser.add_argument("--run_dir", type=str, default=None)
 args = parser.parse_args()
+
+rundir = args.run_dir if args.run_dir is not None else os.path.expandvars('$SCRATCH/nersc-tf-tests')
+os.makedirs(os.path.dirname(rundir), exist_ok=True)
 
 strategy = tf.distribute.MirroredStrategy()
 print('Number of devices: {}'.format(strategy.num_replicas_in_sync))
@@ -53,7 +57,7 @@ else:
 
     # Use mnist data (default)
     print('Using MNIST data')
-    data_dir = os.path.expandvars('$SCRATCH/nersc-tf-tests/data')
+    data_dir = os.path.join(rundir, 'data')
 
     datasets, info = tfds.load(name='mnist', with_info=True, as_supervised=True,
                                data_dir=data_dir)
@@ -84,9 +88,9 @@ with strategy.scope():
                   metrics=['accuracy'])
 
 # Define the checkpoint directory to store the checkpoints.
-checkpoint_dir = os.path.expandvars('$SCRATCH/nersc-tf-tests/training_checkpoints')
+checkpoint_dir = os.path.join(rundir, 'training_checkpoints')
 # Define the name of the checkpoint files.
-checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt_{epoch}.weights.h5")
+checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt_{epoch}")
 
 # Define a function for decaying the learning rate.
 # You can define any decay function you need.
@@ -104,7 +108,7 @@ class PrintLR(tf.keras.callbacks.Callback):
         print('\nLearning rate for epoch {} is {}'.format(epoch + 1, model.optimizer.lr.numpy()))
     
 # Put all the callbacks together.
-tb_log_dir = os.path.expandvars('$SCRATCH/nersc-tf-tests/logs')
+tb_log_dir = os.path.join(rundir, 'logs')
 callbacks = [
     tf.keras.callbacks.TensorBoard(log_dir=tb_log_dir),
     tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_prefix,
@@ -123,12 +127,12 @@ eval_loss, eval_acc = model.evaluate(eval_dataset)
 
 print('Eval loss: {}, Eval accuracy: {}'.format(eval_loss, eval_acc))
 
-path = os.path.expandvars('$SCRATCH/nersc-tf-tests/saved_models/my_model.keras')
-os.makedirs(os.path.dirname(path), exist_ok=True)
+savepath = os.path.join(rundir, 'saved_models/my_model.keras')
+os.makedirs(os.path.dirname(savepath), exist_ok=True)
 
-model.save(path)
+model.save(savepath)
 
-unreplicated_model = tf.keras.models.load_model(path)
+unreplicated_model = tf.keras.models.load_model(savepath)
 
 unreplicated_model.compile(
     loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
@@ -140,7 +144,7 @@ eval_loss, eval_acc = unreplicated_model.evaluate(eval_dataset)
 print('Eval loss: {}, Eval Accuracy: {}'.format(eval_loss, eval_acc))
 
 with strategy.scope():
-    replicated_model = tf.keras.models.load_model(path)
+    replicated_model = tf.keras.models.load_model(savepath)
     replicated_model.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
                              optimizer=tf.keras.optimizers.Adam(),
                              metrics=['accuracy'])
@@ -149,3 +153,4 @@ with strategy.scope():
     print('Eval loss: {}, Eval Accuracy: {}'.format(eval_loss, eval_acc))
 
 print('All done!')
+
